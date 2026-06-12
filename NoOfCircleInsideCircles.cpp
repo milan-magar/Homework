@@ -24,8 +24,8 @@ int main() {
     initgraph(&gd, &gm, "");
 
     // Find center of screen
-    int cx = getmaxx() / 2;
-    int cy = getmaxy() / 2;
+    int cx = getmaxx() / 2; //375;
+    int cy = getmaxy() / 2; //290;
 
     // Define centers of the two overlapping large circles
     int left_cx = cx - (R / 2);

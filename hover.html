@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Pixel Hover Tracker | Center Marker & Live Coordinates</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(145deg, #eef2f9 0%, #dce5f0 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, 'Roboto', sans-serif;
+      padding: 20px;
+      margin: 0;
+    }
+
+    /* main card container */
+    .tracker-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,245,0.3);
+      backdrop-filter: blur(2px);
+      border-radius: 38px;
+      padding: 28px 24px 36px 24px;
+      box-shadow: 0 28px 48px -14px rgba(0, 0, 0, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    /* TITLE & description */
+    .title {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .title h1 {
+      font-size: 1.75rem;
+      font-weight: 650;
+      background: linear-gradient(135deg, #1a2a3f, #0b1421);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: -0.2px;
+    }
+    .title p {
+      color: #1f3b4c;
+      font-size: 0.9rem;
+      margin-top: 8px;
+      font-weight: 500;
+      opacity: 0.9;
+    }
+
+    /* MAIN HOVER BOX - EXACT 639px x 479px */
+    .hover-box {
+      width: 639px;
+      height: 479px;
+      background: radial-gradient(circle at 35% 40%, #2c3e5e, #101a28);
+      outline: 3px solid rgba(255, 215, 100, 0.85);
+      outline-offset: -1px;
+      box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255,255,220,0.15);
+      cursor: crosshair;
+      position: relative;
+      transition: outline 0.1s ease, box-shadow 0.1s ease;
+      box-sizing: content-box;
+      /* no extra padding or border to keep dimensions pixel-perfect */
+    }
+
+    /* center pixel marker: bright, distinct, does not block mouse events */
+    .center-pixel-marker {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      background: #ff3366;
+      box-shadow: 0 0 0 2px rgba(255, 80, 120, 0.9), 0 0 0 4px rgba(255, 200, 100, 0.6);
+      border-radius: 0px;
+      pointer-events: none;
+      z-index: 20;
+      top: 239px;      /* center Y = floor(479/2) = 239 (0-indexed) */
+      left: 319px;     /* center X = floor(639/2) = 319 (0-indexed) */
+      will-change: transform;
+      /* ensure crisp 1x1 rendering */
+      image-rendering: crisp-edges;
+    }
+
+    /* subtle glow on hover-box border */
+    .hover-box:hover {
+      outline: 3px solid #ffcd6b;
+      box-shadow: 0 24px 44px -12px black;
+    }
+
+    /* info panel (the box below) - real-time pixel dimension */
+    .info-panel {
+      margin-top: 34px;
+      background: #0f1825dd;
+      backdrop-filter: blur(12px);
+      border-radius: 32px;
+      padding: 8px 24px;
+      min-width: 290px;
+      text-align: center;
+      border: 1px solid rgba(255, 215, 140, 0.7);
+      box-shadow: 0 16px 28px -10px rgba(0, 0, 0, 0.3);
+      transition: all 0.2s;
+    }
+
+    .coord-label {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 2.2px;
+      font-weight: 600;
+      color: #ffdfa5;
+      margin-bottom: 8px;
+    }
+
+    .coord-value {
+      font-family: 'Fira Mono', 'SF Mono', 'JetBrains Mono', monospace;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #faf3e0;
+      background: #00000066;
+      display: inline-block;
+      padding: 8px 26px;
+      border-radius: 60px;
+      letter-spacing: 1px;
+      backdrop-filter: blur(2px);
+    }
+
+    .coord-value span {
+      font-weight: 800;
+      color: #ffcf7a;
+    }
+
+    .info-footer {
+      font-size: 0.7rem;
+      color: #c0d0e5;
+      margin-top: 12px;
+      font-weight: 400;
+      border-top: 1px dashed rgba(255,215,130,0.5);
+      padding-top: 8px;
+    }
+
+    /* responsive: keep exact dimensions, allow scroll if needed */
+    @media (max-width: 720px) {
+      body {
+        padding: 16px;
+      }
+      .hover-box {
+        width: 639px;
+        height: 479px;
+      }
+      .tracker-container {
+        padding: 20px 16px 28px 16px;
+      }
+      .coord-value {
+        font-size: 1.6rem;
+        padding: 6px 20px;
+      }
+    }
+
+    /* maintain crispness */
+    .hover-box {
+      will-change: transform;
+    }
+  </style>
+</head>
+<body>
+
+<div class="tracker-container">
+  <div class="title">
+    <h1>✦ PIXEL DIMENSION TRACKER ✦</h1>
+    <p>hover anywhere — exact X, Y coordinates displayed below</p>
+  </div>
+
+  <!-- MAIN BOX: EXACT 639x479 with a visible center marker -->
+  <div id="mainHoverBox" class="hover-box">
+    <!-- center pixel marker (bright dot) -->
+    <div class="center-pixel-marker" aria-label="center pixel marker"></div>
+  </div>
+
+  <!-- BELOW BOX: shows real-time pixel coordinate (X, Y) of hovered pixel -->
+  <div class="info-panel">
+    <div class="coord-label">📍 CURRENT PIXEL DIMENSION</div>
+    <div class="coord-value" id="liveCoordDisplay">
+      — , —
+    </div>
+    <div class="info-footer">
+      X → horizontal pixel · Y → vertical pixel &nbsp;&nbsp;|&nbsp; range 0–638 &nbsp;•&nbsp; 0–478
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // DOM elements
+    const hoverBox = document.getElementById('mainHoverBox');
+    const coordDisplay = document.getElementById('liveCoordDisplay');
+
+    // Box dimensions (pixel grid limits)
+    const MAX_X = 638;   // width = 639px -> indices 0..638
+    const MAX_Y = 478;   // height = 479px -> indices 0..478
+
+    // Helper clamp value between min and max inclusive
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+
+    // Mouse move handler: compute exact pixel coordinate inside the 639x479 area
+    function handleMouseMove(event) {
+      // Get bounding rectangle of hover box (real physical dimensions)
+      const rect = hoverBox.getBoundingClientRect();
+      
+      // Calculate relative coordinates from element's top-left corner
+      let rawX = event.clientX - rect.left;
+      let rawY = event.clientY - rect.top;
+      
+      // Floor to get the actual pixel index (each integer index represents a pixel)
+      let pixelX = Math.floor(rawX);
+      let pixelY = Math.floor(rawY);
+      
+      // Clamp to valid range (ensures even edge cases like slight rounding outside)
+      pixelX = clamp(pixelX, 0, MAX_X);
+      pixelY = clamp(pixelY, 0, MAX_Y);
+      
+      // Update the display with dimension of the pixel being hovered
+      coordDisplay.innerHTML = `<span>X</span> ${pixelX} &nbsp;&nbsp;•&nbsp;&nbsp; <span>Y</span> ${pixelY}`;
+    }
+    
+    // When mouse leaves, reset to placeholder (neutral state)
+    function handleMouseLeave() {
+      coordDisplay.innerHTML = `— , —`;
+    }
+    
+    // Attach event listeners
+    if (hoverBox) {
+      hoverBox.addEventListener('mousemove', handleMouseMove);
+      hoverBox.addEventListener('mouseleave', handleMouseLeave);
+    } else {
+      console.error("Critical: element 'mainHoverBox' missing");
+    }
+    
+    // Bonus: Add a small visual feedback that center pixel is marked without any logic override
+    // The center marker is already placed via CSS at exact pixel coordinates (X=319, Y=239)
+    // Ensure that marker never interferes with hover coordinate detection (pointer-events: none already set)
+  })();
+</script>
+</body>
+</html>

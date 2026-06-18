@@ -1,8 +1,8 @@
+
 void main(){
 
-    Scanner input = new Scanner(System.in);
-    System.out.print("Enter a number (1/7): ");
-    int a = input.nextInt();
+    Scanner scan = new Scanner(System.in);
+    //System.out.print("Enter a number (1/7): ");
 
     /*
     switch (a) {
@@ -31,7 +31,7 @@ void main(){
             System.out.println("Invalid");
             break;
     }
-     */
+
     String dayName;
     dayName = switch (a) {
         case 1 -> "Sunday";
@@ -44,5 +44,48 @@ void main(){
     };
 
     System.out.println("The day is "+ dayName);
+     */
+    System.out.print("Enter first number: ");
+    int a = scan.nextInt();
+    System.out.print("Enter second number: ");
+    int b = scan.nextInt();
+
+    System.out.println("Select a choice from Menu: ");
+    System.out.println("***********************************************");
+    System.out.println("1: Addition");
+    System.out.println("2: Subtraction");
+    System.out.println("3: Multiplication");
+    System.out.println("4: Division");
+    System.out.println("***********************************************");
+    System.out.print("Enter your choice: ");
+    int choice = scan.nextInt();
+
+    switch (choice) {
+        case 1 -> {int sum = a+b;
+                    System.out.println("Sum: "+ sum);
+                    }
+        case 2 -> {int difference = a-b;
+                    System.out.println("Difference is: "+difference);
+                    }
+        case 3 -> {int product = a*b;
+            System.out.println("Product is: "+product);
+        }
+        case 4 -> {int quotient = 1, remainder = 1;
+                float answer;
+            if (b==0){
+                System.out.println("Undefined");
+            } else {
+                quotient = a/b;
+                remainder = a%b;
+                answer = (float)a/b;
+                System.out.println("Quotient: "+quotient);
+                System.out.println("Remainder: "+remainder);
+                System.out.printf("Simple Answer is %.3f",answer);
+            }
+
+        }
+        default -> System.out.println("Invalid Choice");
+    }
+
 
 }
